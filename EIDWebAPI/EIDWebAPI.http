@@ -1,0 +1,6 @@
+@EIDWebAPI_HostAddress = http://localhost:5209
+
+GET {{EIDWebAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
