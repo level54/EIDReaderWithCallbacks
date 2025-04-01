@@ -41,6 +41,11 @@ The page should look like this.
 ![Screenshot of EIDWebAPI Swagger page](https://bitbucket.org/repo/7EG7zRy/images/983419939-Web%20capture_24-11-2023_173522_localhost.jpeg)
 You don’t need to use any of these functions, but the web interface can be used to manually de/register a callback url. Note that any application or service that wants to call these functions, needs to pass the callback location using the CallbackModel object supplied. The schema for the service is also available at the location shown below the EIDWebAPI name.
 
+## Inner Workings
+The **SerialWorker** runs as a service and waits for incoming data from a RS232 serial port. It has a reference to the IDispatcher interface, and uses this interface to dispatch any new data via the Dispatcher's ```OnEventReceived``` function.
+A remote entiry, registers it's own endpoint with EIDWebAPI by calling the *RegisterMeForCallback* API. The EventController class takes the endpoint and adds it to the CallbackManager class. The EventController class also registeres the Dispatcher's ```EventReceived``` event. Once an event fires through the dispatcher, the EventController calls the ```InvokeCallbacksAsync``` function on the CallbackManager and passes the relevant event data as a parameter.
+When the CallbackManager's ```InvokeCallbacksAsync``` function is invoked, it takes the data received as a parameter, serializes it to ```application/json``` and post's it to each registered callback endpoint.
+
 # CallbackAPI
 
 This executable will register itself as a callback function with the EIDWebAPI and should reside on the same computer as the EIDWebAPI service, as it’s endpoint has been hard coded into the registration function for ease of coding.
