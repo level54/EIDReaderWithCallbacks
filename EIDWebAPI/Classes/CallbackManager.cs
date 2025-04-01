@@ -15,12 +15,18 @@ public class CallbackManager
 
     public void RegisterCallback(string callbackUrl)
     {
-        _callbackUrls.Add(callbackUrl);
+        if (!string.IsNullOrEmpty(callbackUrl) && !_callbackUrls.Contains(callbackUrl))
+        {
+            _callbackUrls.Add(callbackUrl);
+        }
     }
 
     public void UnregisterCallback(string callbackUrl)
     {
-        _callbackUrls.Remove(callbackUrl);
+        if (!string.IsNullOrEmpty(callbackUrl) && _callbackUrls.Contains(callbackUrl))
+        {
+            _callbackUrls.Remove(callbackUrl);
+        }
     }
 
     public async void InvokeCallbacksAsync(string message)

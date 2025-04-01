@@ -41,7 +41,7 @@ public class EventController : ControllerBase
     public IActionResult RegisterCallback([FromBody] CallbackModel callbackModel)
     {
         _logger.LogInformation($"Register Callback : {callbackModel.CallbackUrl}");
-        _callbackManager.RegisterCallback(callbackModel.CallbackUrl);
+        _callbackManager.RegisterCallback(callbackModel.CallbackUrl ?? string.Empty);
         return Ok();
     }
 
@@ -50,7 +50,7 @@ public class EventController : ControllerBase
     public IActionResult RemoveCallback([FromBody] CallbackModel callbackModel)
     {
         _logger.LogInformation($"Deregister Callback : {callbackModel.CallbackUrl}");
-        _callbackManager.UnregisterCallback(callbackModel.CallbackUrl);
+        _callbackManager.UnregisterCallback(callbackModel.CallbackUrl ?? string.Empty);
         return Ok();
     }
 

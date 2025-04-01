@@ -157,7 +157,7 @@ internal class SerialWorker : IHostedService
         }
     }
 
-    private async void ProcessReceiveQueueData(CancellationToken cancellationToken)
+    private void ProcessReceiveQueueData(CancellationToken cancellationToken)
     {
 
         var settings = _configuration.GetSection("SerialPort").Get<SerialPortSettings>();
