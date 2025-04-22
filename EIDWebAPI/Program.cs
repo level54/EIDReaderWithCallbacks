@@ -1,9 +1,8 @@
-using Serilog;
-using Microsoft.Extensions.Hosting.WindowsServices;
-using EIDWebAPI.Workers;
-using EIDWebAPI.Classes;
 using CallbackAPI.Settings;
-using Asp.Versioning.ApiExplorer;
+using EIDWebAPI.Classes;
+using EIDWebAPI.Workers;
+using Microsoft.Extensions.Hosting.WindowsServices;
+using Serilog;
 
 namespace EIDWebAPI;
 
