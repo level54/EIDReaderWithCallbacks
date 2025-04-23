@@ -34,6 +34,7 @@ namespace EIDServiceWithSignalR.Hubs
     // Services/IEventNotificationService.cs
     public interface IEventNotificationService
     {
+        Task NotifyClientsOfSerialDataReceivedAsync(string eventType, object data);
         Task NotifyClientsAsync(string eventType, object data);
     }
 
@@ -53,8 +54,14 @@ namespace EIDServiceWithSignalR.Hubs
 
         public async Task NotifyClientsAsync(string eventType, object data)
         {
-            _logger.LogInformation("Sending notification for event: {EventType}", eventType);
-            await _hubContext.Clients.Group(eventType).SendAsync("ReceiveEvent", eventType, data);
+            _logger.LogInformation($"Sending notification for event: {eventType}, using method NotifyClients");
+            await _hubContext.Clients.Group(eventType).SendAsync("NotifyClients", eventType, data);
+        }
+
+        public async Task NotifyClientsOfSerialDataReceivedAsync(string eventType, object data)
+        {
+            _logger.LogInformation($"Sending notification for event: {eventType}, using method SerialDataReceivedEvent");
+            await _hubContext.Clients.Group(eventType).SendAsync("SerialDataReceivedEvent", eventType, data);
         }
     }
 }

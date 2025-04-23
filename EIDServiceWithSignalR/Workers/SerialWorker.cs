@@ -1,7 +1,11 @@
 ﻿
+using EIDServiceWithSignalR.Classes;
 using EIDServiceWithSignalR.Hubs;
 using EIDServiceWithSignalR.Settings;
+using Newtonsoft.Json.Schema.Generation;
+using Newtonsoft.Json.Serialization;
 using System.IO.Ports;
+using System.Net;
 
 namespace EIDServiceWithSignalR.Workers;
 
@@ -173,7 +177,39 @@ internal class SerialWorker : IHostedService
                     _logger.LogInformation(data);
                     //todo
                     //_dispatcher.OnEventReceived(new EventReceivedArgs(data));
-                    _events.NotifyClientsAsync("DataReceived", data ?? string.Empty);
+                    var objData = new MyObject()
+                    {
+                        TimeStamp = DateTime.Now,
+                        Name = Dns.GetHostName(),
+                        Description = data,
+                        Type = "SerialData"
+                    };
+
+                    // Create a JSON schema for MyObject automatically
+                    // Create a JSchemaGenerator with custom settings
+                    var generator = new JSchemaGenerator();
+                    //{
+                    //    // Apply a CamelCaseNamingStrategy to the ContractResolver
+                    //    ContractResolver = new DefaultContractResolver
+                    //    {
+                    //        NamingStrategy = new CamelCaseNamingStrategy()
+                    //    }
+                    //};
+                    var schema = generator.Generate(typeof(MyObject));
+
+                    // Optionally, convert the schema to its JSON string representation:
+                    string schemaJson = schema.ToString();
+
+                    // Build a payload that includes both the data and its schema
+                    var payload = new
+                    {
+                        Data = objData,
+                        Schema = schemaJson
+                    };
+
+                    _events.NotifyClientsOfSerialDataReceivedAsync("DataReceived", payload);
+
+                    _events.NotifyClientsAsync("ThreadSleep", $"The procedure will now rest.");
                 }
             }
 

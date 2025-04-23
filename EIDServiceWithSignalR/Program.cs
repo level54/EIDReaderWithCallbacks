@@ -1,6 +1,7 @@
 using EIDServiceWithSignalR.Hubs;
 using EIDServiceWithSignalR.Workers;
 using Microsoft.Extensions.Hosting.WindowsServices;
+using Newtonsoft.Json.Serialization;
 using Serilog;
 
 namespace EIDServiceWithSignalR;
@@ -30,9 +31,17 @@ public class Program
         });
 
         //configure services
-        builder.Services.AddSignalR();
+        builder.Services.AddSignalR()
+        //.AddNewtonsoftJsonProtocol();
+            .AddNewtonsoftJsonProtocol(options =>
+            {
+                // Optionally configure Newtonsoft.Json settings.
+                //options.PayloadSerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+                options.PayloadSerializerSettings.ContractResolver = new DefaultContractResolver();
+                options.PayloadSerializerSettings.Formatting = Newtonsoft.Json.Formatting.Indented;
+            });
+
         builder.Services.AddHostedService<SerialWorker>();
-        //services.AddHttpClient();
         builder.Services.AddSingleton<IEventNotificationService, EventNotificationService>();
 
         //build the app

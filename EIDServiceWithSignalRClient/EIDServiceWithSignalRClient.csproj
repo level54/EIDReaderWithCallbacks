@@ -17,8 +17,10 @@
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="9.0.4" />
+		<PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.NewtonsoftJson" Version="9.0.4" />
 		<PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.4" />
 		<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.4" />
+		<PackageReference Include="Newtonsoft.Json.Schema" Version="4.0.1" />
 	</ItemGroup>
 	
 </Project>
