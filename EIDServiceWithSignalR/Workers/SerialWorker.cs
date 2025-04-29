@@ -2,8 +2,7 @@
 using EIDServiceWithSignalR.Classes;
 using EIDServiceWithSignalR.Hubs;
 using EIDServiceWithSignalR.Settings;
-using Newtonsoft.Json.Schema.Generation;
-using Newtonsoft.Json.Serialization;
+using NJsonSchema;
 using System.IO.Ports;
 using System.Net;
 
@@ -185,20 +184,11 @@ internal class SerialWorker : IHostedService
                         Type = "SerialData"
                     };
 
-                    // Create a JSON schema for MyObject automatically
-                    // Create a JSchemaGenerator with custom settings
-                    var generator = new JSchemaGenerator();
-                    //{
-                    //    // Apply a CamelCaseNamingStrategy to the ContractResolver
-                    //    ContractResolver = new DefaultContractResolver
-                    //    {
-                    //        NamingStrategy = new CamelCaseNamingStrategy()
-                    //    }
-                    //};
-                    var schema = generator.Generate(typeof(MyObject));
+                    // Generate JSON Schema for the MyObject type
+                    var schema = JsonSchema.FromType<MyObject>();
 
-                    // Optionally, convert the schema to its JSON string representation:
-                    string schemaJson = schema.ToString();
+                    // Convert the schema to its JSON string representation
+                    string schemaJson = schema.ToJson();
 
                     // Build a payload that includes both the data and its schema
                     var payload = new

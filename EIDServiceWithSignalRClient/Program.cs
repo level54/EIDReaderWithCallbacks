@@ -3,7 +3,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
-using System.Text.Json;
 
 namespace EIDServiceWithSignalRClient;
 

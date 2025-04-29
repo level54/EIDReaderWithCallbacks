@@ -1,78 +1,81 @@
 ﻿namespace EIDServiceWithSignalRClient;
 
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Schema;
+using NJsonSchema;
 using System;
 using System.Collections.Generic;
 using System.Dynamic;
+using System.Text.Json.Nodes;
 
 public static class DynamicObjectBuilder
 {
     /// <summary>
-    /// Builds a dynamic object (an ExpandoObject) whose properties are created
-    /// by reading the provided JSON Schema and whose values are taken from the data JSON.
+    /// Builds a dynamic object (ExpandoObject or List<ExpandoObject>) based on the provided JSON schema and data.
     /// </summary>
     /// <param name="schemaJson">A JSON string representing the schema.</param>
     /// <param name="dataJson">A JSON string representing the data.</param>
-    /// <returns>A dynamic object with properties set from the data.</returns>
+    /// <returns>A dynamic object or list of dynamic objects populated by the data.</returns>
     public static dynamic BuildDynamicObject(string schemaJson, string dataJson)
     {
-        // Parse the JSON Schema
-        JSchema schema = JSchema.Parse(schemaJson);
-        // Parse the JSON data to a JObject
-        JObject dataObj = JObject.Parse(dataJson);
+        // Parse the JSON Schema using NJsonSchema
+        var schema = JsonSchema.FromJsonAsync(schemaJson).Result;
 
-        // Use an ExpandoObject to build a dynamic object
+        // Parse the JSON data into a JsonNode
+        var dataToken = JsonNode.Parse(dataJson);
+
+        // Determine if the data is a single object or a list of objects
+        if (dataToken is JsonArray dataArray)
+        {
+            var dynamicList = new List<ExpandoObject>();
+
+            foreach (var item in dataArray)
+            {
+                if (item is JsonObject itemObj)
+                {
+                    dynamic dynamicObj = CreateDynamicObjectFromSchema(schema, itemObj);
+                    dynamicList.Add(dynamicObj);
+                }
+            }
+
+            return dynamicList;
+        }
+        else if (dataToken is JsonObject dataObj)
+        {
+            return CreateDynamicObjectFromSchema(schema, dataObj);
+        }
+        else
+        {
+            throw new InvalidOperationException("Unsupported JSON data format. Expected object or array.");
+        }
+    }
+
+    /// <summary>
+    /// Creates a single dynamic object from the schema and data.
+    /// </summary>
+    /// <param name="schema">The JSON schema describing the structure.</param>
+    /// <param name="dataObj">The JSON data containing values.</param>
+    /// <returns>A dynamic object with properties populated by the data.</returns>
+    private static ExpandoObject CreateDynamicObjectFromSchema(JsonSchema schema, JsonObject dataObj)
+    {
         dynamic dynamicObj = new ExpandoObject();
         var dict = (IDictionary<string, object>)dynamicObj;
 
-        // Iterate over each property defined in the schema
+        // Iterate over the schema's property definitions
         foreach (var property in schema.Properties)
         {
             string propertyName = property.Key;
-            JSchema propertySchema = property.Value;
 
-            // Look for this property in the data object
-            if (dataObj.TryGetValue(propertyName, out JToken token))
+            // Check if the property exists in the data
+            if (dataObj.TryGetPropertyValue(propertyName, out JsonNode? value))
             {
-                // Map the schema's type to a desired .NET type
-                Type targetType = MapJSchemaTypeToDotNet(propertySchema.Type.Value);
-                // Convert the JSON token to the proper .NET type
-                object value = token.ToObject(targetType);
-                dict[propertyName] = value;
+                // Dynamically assign the value from the data
+                dict[propertyName] = value.GetValue<object>();
             }
             else
             {
-                // If the property is missing from the data, assign null
-                dict[propertyName] = null;
+                dict[propertyName] = null; // Assign null if the property is missing
             }
         }
 
         return dynamicObj;
-    }
-
-    /// <summary>
-    /// Maps a JSchemaType to a corresponding .NET type.
-    /// This is a basic mapping and can be extended for your needs.
-    /// </summary>
-    /// <param name="schemaType">The JSchemaType flag from the schema.</param>
-    /// <returns>A .NET Type corresponding to the JSON Schema type.</returns>
-    private static Type MapJSchemaTypeToDotNet(JSchemaType schemaType)
-    {
-        if (schemaType.HasFlag(JSchemaType.String))
-            return typeof(string);
-        if (schemaType.HasFlag(JSchemaType.Integer))
-            return typeof(int);
-        if (schemaType.HasFlag(JSchemaType.Number))
-            return typeof(double);
-        if (schemaType.HasFlag(JSchemaType.Boolean))
-            return typeof(bool);
-        if (schemaType.HasFlag(JSchemaType.Array))
-            return typeof(JArray);
-        if (schemaType.HasFlag(JSchemaType.Object))
-            return typeof(JObject);
-
-        // Fallback to object if none of the above match.
-        return typeof(object);
     }
 }
